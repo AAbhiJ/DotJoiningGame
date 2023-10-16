@@ -23,6 +23,7 @@ const ThreeDotsWLineCrossJoining = () => {
         }
         else {
             setSelectedDot(null);
+            
             setLinePoints([]);
             // if we have current points already selected, we remove the points(which will remove the line)
             const foundIndex = linePointsAll.findIndex((points : number[][])=> comparePoints(points[0], linePoints[0]) && comparePoints(points[1], dotPosition))
