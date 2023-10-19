@@ -20,7 +20,6 @@ const DotJoiningGame = () => {
 
             <DotJoiningGameComp />
 
-            <mouse />
         </Canvas>
     )
 }
