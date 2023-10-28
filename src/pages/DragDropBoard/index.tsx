@@ -8,7 +8,7 @@ const DragDropBoard = () => {
   return (
     <Canvas>
       {/* <OrbitControls /> */}
-      <OrthographicCamera makeDefault zoom={60} position={[0, 0, 1]} />
+      <OrthographicCamera makeDefault zoom={30} position={[0, 0, 1]} />
       <ambientLight />
       <pointLight position={[10, 10, 10]} />
 

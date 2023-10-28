@@ -3,10 +3,14 @@ import { useDispatch, useSelector } from "react-redux";
 import type { TypedUseSelectorHook } from "react-redux";
 
 import AuthUserReducer from "./slices/AuthUserSlice";
+import CounterReducer from "./slices/CouterSlice";
+import FlipFlopCanvasSlice from "./slices/FlipFlopCanvasSlice";
 
 export const store = configureStore({
   reducer: {
     currentAuthUser: AuthUserReducer,
+    counter : CounterReducer,
+    flipFlopCanvas : FlipFlopCanvasSlice
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

@@ -1,7 +1,8 @@
 // import Canvas2D from "./Canvas2D"
 
 // import { Box } from "@react-three/drei"
-import CustomDots from "./CustomDots"
+// import CustomDots from "./CustomDots"
+import CustomShere from "./CustomShere"
 // import CustomShere from "./CustomShere"
 // import CustomTeaching from "./CustomTeaching"
 
@@ -12,7 +13,7 @@ const CustomScene = () => {
     <>
       {/* <ambientLight />
       <pointLight position={[10, 10, 10]} /> */}
-      <CustomDots></CustomDots>
+      {/* <CustomDots></CustomDots> */}
 
 
       {/* <ambientLight /> */}
@@ -21,7 +22,7 @@ const CustomScene = () => {
 
 
       {/* <Canvas2D></Canvas2D> */}
-      {/* <CustomShere></CustomShere> */}
+      <CustomShere></CustomShere>
       {/* Light */}
       <ambientLight args={["#ffffff", 1]} />
 

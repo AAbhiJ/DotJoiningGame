@@ -9,7 +9,9 @@ function GameBoard() {
 
   const [boxPositions, setboxPositions] = useState<Vector3[]>([])
 
-  const boardSize = 10;
+  const boardSize = 20;
+  const gridHelperSize = boardSize;
+  const gridHelperDivision = boardSize;
   const [highlightSquarePos, sethighlightSquarePos] = useState<Vector3>(new Vector3(0.5, 0.5, 0))
 
   const handlePointerMove = (event: ThreeEvent<PointerEvent>) => {
@@ -43,7 +45,7 @@ function GameBoard() {
       </mesh>
       <HighlightedSqaure position={highlightSquarePos} />
 
-      <gridHelper args={[boardSize]} rotation-x={angleToRadian(90)} />
+      <gridHelper args={[gridHelperSize, gridHelperDivision]} rotation-x={angleToRadian(90)} />
 
 
       {/* Component to Render Small Box on Mouse Click */}

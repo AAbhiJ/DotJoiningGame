@@ -12,7 +12,7 @@ interface Props {
   authUser: User | null;
 }
 
-let INITIAL_STATE: Props = {
+const INITIAL_STATE: Props = {
   authUser: null,
 };
 

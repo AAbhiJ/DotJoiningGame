@@ -1,6 +1,6 @@
 import { OrbitControls, PerspectiveCamera } from "@react-three/drei"
 import { angleToRadian } from "../../helpers/func"
-import { useFrame } from "@react-three/fiber"
+// import { useFrame } from "@rea ct-three/fiber"
 import { useRef } from "react"
 
 const CustomShere = () => {
@@ -25,7 +25,7 @@ const CustomShere = () => {
       {/* Sphere */}
       <mesh position={[0, 0.5, 0]}>
         <sphereGeometry args={[0.5, 32, 32]} />
-        <meshStandardMaterial color="#ffffff" />
+        <meshStandardMaterial color="#ffffff" wireframe={true}/>
       </mesh>
       <mesh rotation={[-angleToRadian(90), 0, 0]}>
         <planeGeometry args={[7, 7]} />
