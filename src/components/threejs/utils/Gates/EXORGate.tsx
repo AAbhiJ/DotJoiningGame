@@ -6,18 +6,13 @@ import { FlipFlopCanvasStore, selectDot, addLine, removeLine } from "../../../..
 import { useAppDispatch } from "../../../../store";
 import { ConnectedDots } from "../../../../models/ConnectedDots";
 import { Line } from "@react-three/drei";
+import { ThreeEvent } from "@react-three/fiber";
+import { isIndexesConnected } from "../../helperFunctions/isIndexesConnected";
 
 
 interface EXORGateProps {
     meshPosition: Vector3;
     id: number;
-}
-
-const isIndexesConnected = (index1: string, index2: string, connectedDots: ConnectedDots[]) => {
-    return connectedDots.findIndex(point => {
-        const curDotIndex = point.getIndexes();
-        return (curDotIndex[0] === index1 && curDotIndex[1] === index2) || (curDotIndex[0] === index2 && curDotIndex[1] === index1)
-    });
 }
 
 
@@ -33,10 +28,9 @@ const EXORGate = ({ meshPosition, id }: EXORGateProps) => {
         new SphereGeometry(0.2, 16, 16).translate(-1.75, -0.55, 0),
     ]
 
-    const handleClick = (e: THREE.Event) => {
-
+    const handleClick = (e: ThreeEvent<MouseEvent>) => {
         const objPoint = e.object.geometry.boundingSphere.center;
-        const parentPos = e.object.parent.position;
+        const parentPos = e.object.parent?.position || {x:0, y:0, z:0};
         const dotIndex = e.object.userData.dot;
         const pointPos: [number, number, number] = [
             objPoint.x + parentPos.x,

@@ -1,0 +1,71 @@
+export const CorrectSRFlipFlopConnections = [
+    [
+        "3.1",
+        "3.2"
+    ],
+    [
+        "4.2",
+        "4.1"
+    ],
+    [
+        "3.0",
+        "1.1"
+    ],
+    [
+        "1.2",
+        "2.0"
+    ],
+    [
+        "2.1",
+        "1.0"
+    ],
+    [
+        "SWITCHPOINT5",
+        "1.0"
+    ],
+    [
+        "2.0",
+        "SWITCHPOINT6"
+    ],
+    [
+        "4.0",
+        "2.2"
+    ],
+    // Option 1
+    [
+        "SWITCHPOINT1",
+        "3.1"
+    ],
+    [
+        "SWITCHPOINT4",
+        "4.2"
+    ],
+    // Option 2
+    [
+        "SWITCHPOINT2",
+        "3.2"
+    ],
+    [
+        "SWITCHPOINT3",
+        "4.1"
+    ],
+    // Option 3
+    [
+        "SWITCHPOINT2",
+        "3.1"
+    ],
+    [
+        "SWITCHPOINT3",
+        "4.2"
+    ],
+    // Option 4
+    [
+        "SWITCHPOINT1",
+        "3.2"
+    ],
+    [
+        "SWITCHPOINT4",
+        "4.1"
+    ],
+
+]
