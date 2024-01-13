@@ -10,6 +10,7 @@ import Threejs from "../pages/threejs";
 import Practical from "../pages/practical";
 import FlipFlop from "../pages/practical/FlipFlop";
 import Counter from "../pages/counterRedux";
+import Thevenin from "../pages/practical/Thevenin";
 
 const PublicRoutes = () => {
   return (
@@ -18,9 +19,10 @@ const PublicRoutes = () => {
         {/* <Route path="/" element={<PracticalCanvas />} /> */}
         <Route path="/prac" element={<Practical />} />
         <Route path="/flipflopn" element={<FlipFlop />} />
+        <Route path="/thevin" element={<Thevenin />} />
         <Route path="/reduxTest" element={<Counter />} />
         {/* <Route path="/flipflop" element={<FlipFlop />} /> */}
-        {/* <Route path="/" element={<DotJoiningGame />} />*/}
+        {/* <Route path="/" element={<DotJoiningGame />} />*/}  
         <Route path="/DotJoinGame" element={<DotJoiningGameN />} /> 
         <Route path="/board" element={<DragDropBoard />} />
         <Route path="/three" element={<Threejs />} />

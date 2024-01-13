@@ -5,12 +5,14 @@ import type { TypedUseSelectorHook } from "react-redux";
 import AuthUserReducer from "./slices/AuthUserSlice";
 import CounterReducer from "./slices/CouterSlice";
 import FlipFlopCanvasSlice from "./slices/FlipFlopCanvasSlice";
+import TheveninCanvasSlice from "./slices/TheveninCanvasSlice";
 
 export const store = configureStore({
   reducer: {
     currentAuthUser: AuthUserReducer,
     counter : CounterReducer,
-    flipFlopCanvas : FlipFlopCanvasSlice
+    flipFlopCanvas : FlipFlopCanvasSlice,
+    TheveninCanvas : TheveninCanvasSlice,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

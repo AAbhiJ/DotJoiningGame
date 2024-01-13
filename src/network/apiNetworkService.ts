@@ -6,4 +6,7 @@ export class ApiNetworkService {
   static getGithubUsers() {
     return http.get(`${baseUrlEnv}/${Endpoints.USERS}`);
   }
+  static submitPractical(payload : any) {
+    return http.post(`/${Endpoints.SUBMIT_PRACTICAL}`, payload);
+  }
 }

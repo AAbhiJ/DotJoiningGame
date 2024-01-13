@@ -7,7 +7,7 @@ const baseUrlEnv = import.meta.env.VITE_REACT_APP_BASE_URL;
 axios.defaults.baseURL = baseUrlEnv;
 
 const addLoginHeaders = (config: any) => {
-  let authToken = authTokenEnv;
+  const authToken = authTokenEnv || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjMiLCJpYXQiOjE3MDIxMTQ0MTcsImV4cCI6MTcwMjExNTMxN30.ht3lZxDlMziP8KZ0DuXRdQk39NUuVz0OpbMyUHk7iGc";
   if (authToken && authToken.length > 0) {
     config.headers["Authorization"] = `Bearer ${authToken}`;
   }

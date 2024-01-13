@@ -17,7 +17,6 @@ const ConnectionLines = () => {
 
     const curPoints1 : Vector3 = new Vector3(-2.25, 3, 0);
     const curPoints2 : Vector3 = new Vector3(2.25, 2.5499999970197678, 0);
-console.log({curPoints1})
     return (
         <>
            <Line points={[curPoints1, curPoints2]} color={"#378805"} lineWidth={3} />

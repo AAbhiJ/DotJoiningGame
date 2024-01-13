@@ -1,11 +1,11 @@
 import { useSelector } from 'react-redux';
-import { FlipFlopCanvasStore, selectPractical, resetLines, setSwitch } from '../../../../store/slices/FlipFlopCanvasSlice';
+import { TheveninCanvasStore, resetLines, selectPractical } from '../../../../store/slices/TheveninCanvasSlice';
 
 import { useEffect, useState } from 'react';
-import { Button, Col, Drawer, Form, Input, Radio, RadioChangeEvent, Row, Space, Table, Typography, notification } from 'antd';
+import { Button, Col, Drawer, Form, Radio, RadioChangeEvent, Row, Space, notification, Input } from 'antd';
 import { useAppDispatch } from '../../../../store';
-import { CorrectClockedFlipFlopConnections, CorrectSRFlipFlopConnections } from '../../utils/Gates/GatesConnection';
-import { GATES_CONFIG } from './gates.config';
+import { CorrectClockedFlipFlopConnections, CorrectSRFlipFlopConnections } from '../Gates/GatesConnection';
+import { GATES_CONFIG } from './thevenin.config';
 import { ApiNetworkService } from '../../../../network/apiNetworkService';
 
 import { auth, db } from '../../../../config/firebase';
@@ -16,65 +16,37 @@ import {
   signInWithEmailAndPassword,
   signOut,
 } from 'firebase/auth'
+import Title from 'antd/es/typography/Title';
+
+type FieldType = {
+  voltage?: number;
+  vth?: number;
+  rth?: number;
+  isChanged: boolean;
+};
 
 
-interface FlipFlopResultTable {
-  key: string;
-  ip1: number;
-  ip2: number;
-  Q: number | null;
-  _Q: number | null;
-}
+const thevenin = doc(db, "Projects_DB", "Thevinen");
 
-const asd: FlipFlopResultTable[] = [
-  {
-    key: '1',
-    ip1: 0,
-    ip2: 0,
-    Q: null,
-    _Q: null
-  },
-  {
-    key: '2',
-    ip1: 0,
-    ip2: 1,
-    Q: null,
-    _Q: null
-  },
-  {
-    key: '3',
-    ip1: 1,
-    ip2: 0,
-    Q: null,
-    _Q: null
-  },
-  {
-    key: '4',
-    ip1: 1,
-    ip2: 1,
-    Q: null,
-    _Q: null
-  },
-];
+const onFinish = (values: FieldType) => {
+  console.log('Success:', values);
+};
 
-const ff = doc(db, "Projects_DB", "FlipFlop");
 
-const EXORGateFloatingMenu = () => {
+
+const TheveninGateFloatingMenu = () => {
 
   //temp
   const USERID = 3;
 
   // state
   const dispatch = useAppDispatch();
-  const flipFlopState = useSelector(FlipFlopCanvasStore)
+  const TheveninState = useSelector(TheveninCanvasStore)
 
-  const flipFlopPracticalOptions = GATES_CONFIG;
-
-  const COL_WIDTH: string = "25%";
+  const TheveninPracticalOptions = GATES_CONFIG;
 
   const [open, setOpen] = useState(false);
-  const [dataSource, setDataSource] = useState(asd);
-  const [tableData, setTableData] = useState<FlipFlopResultTable[]>([]);
+  const [resultData] = Form.useForm();
 
   let unsubscribe: any = null;
 
@@ -89,16 +61,17 @@ const EXORGateFloatingMenu = () => {
 
     });
 
-    unsubscribe = onSnapshot(ff, (doc: DocumentSnapshot<any>): void => {
+    unsubscribe = onSnapshot(thevenin, (doc: DocumentSnapshot<any>): void => {
       if (!doc || doc === undefined || doc?._document === null) return;
-      const QIp = doc.data().Q;
-      const _QIp = doc.data()._Q
+      const volt = doc.data().op_volt;
+      const rth = doc.data().op_rth;
+      const vth = doc.data().op_vth;
 
       // handle result on off logic
-      dispatch(setSwitch({switch : "SWITCH5",value : QIp}));
-      dispatch(setSwitch({switch : "SWITCH6",value : _QIp}));
+      // dispatch(setSwitch({ switch: "SWITCH5", value: QIp }));
+      // dispatch(setSwitch({ switch: "SWITCH6", value: _QIp }));
 
-      console.log(QIp, _QIp);
+      console.log(volt, rth, vth);
       console.log("Current data: ", doc.data());
     });
   }
@@ -112,7 +85,6 @@ const EXORGateFloatingMenu = () => {
     return () => {
       handleFirebaseDestroy();
       if (unsubscribe) unsubscribe();
-      console.log("called destroy");
     }
   }, []);
 
@@ -126,8 +98,8 @@ const EXORGateFloatingMenu = () => {
     setOpen(false);
   };
 
-  const onChangeFlipFlopPractical = ({ target: { value } }: RadioChangeEvent) => {
-    if (tableData.length !== 0) {
+  const onChangeTheveninPractical = ({ target: { value } }: RadioChangeEvent) => {
+    if (resultData.getFieldValue('isChanged')) {
       showResetInputToast();
       return false;
     }
@@ -152,9 +124,17 @@ const EXORGateFloatingMenu = () => {
     notification.warning(config);
   }
 
-  const ValidateSRConnection = () => {
+  const showCustomWarningToast = (message: string) => {
+    const config = {
+      message: "Custom Message",
+      description: message
+    }
+    notification.warning(config);
+  }
+
+  const ValidateVoltageConnection = () => {
     /** Get all the conenction indexes */
-    const allConnections: [string, string][] = flipFlopState.allLines.map((ele) => ele.getIndexes());
+    const allConnections: [string, string][] = TheveninState.allLines.map((ele) => ele.getIndexes());
 
     /** if length is not equal to 10, wrong connections */
     if (allConnections.length !== 10) {
@@ -162,7 +142,7 @@ const EXORGateFloatingMenu = () => {
     }
 
     /** 
-     * check current connection with CorrectSRFlipFlopConnections
+     * check current connection with CorrectSRxxFlipFlopConnections
      * we return true if the connection is not connection, so the NotConencted will have all not matching connection indexes.
      * Ideally NotConnected should be empty, means current connections are all correct.  
      */
@@ -182,7 +162,7 @@ const EXORGateFloatingMenu = () => {
     return true;
   }
 
-  const ValidateClockedConnection = () => {
+  const ValidateVthConnection = () => {
     /** HANDLE EDGE CASE OF 
      *  [
           "3.2",
@@ -197,7 +177,7 @@ const EXORGateFloatingMenu = () => {
      */
 
     /** Get all the conenction indexes */
-    const allConnections: [string, string][] = flipFlopState.allLines.map((ele) => ele.getIndexes());
+    const allConnections: [string, string][] = TheveninState.allLines.map((ele) => ele.getIndexes());
 
     /** if length is not equal to 10, wrong connections */
     if (allConnections.length !== 10) {
@@ -225,11 +205,11 @@ const EXORGateFloatingMenu = () => {
     return true;
   }
 
-  const ValidateDConnection = () => {
+  const ValidateRthConnection = () => {
     throw "Working";
     return;
     /** Get all the conenction indexes */
-    const allConnections: [string, string][] = flipFlopState.allLines.map((ele) => ele.getIndexes());
+    const allConnections: [string, string][] = TheveninState.allLines.map((ele) => ele.getIndexes());
 
     /** if length is not equal to 10, wrong connections */
     if (allConnections.length !== 10) {
@@ -258,66 +238,23 @@ const EXORGateFloatingMenu = () => {
   }
 
   const ValidateConnection = () => {
-    //   const allConnections = [
-    //     [
-    //         "SWITCHPOINT2",
-    //         "3.2"
-    //     ],
-    //     [
-    //         "3.1",
-    //         "3.2"
-    //     ],
-    //     [
-    //         "4.1",
-    //         "4.2"
-    //     ],
-    //     [
-    //         "SWITCHPOINT4",
-    //         "4.2"
-    //     ],
-    //     [
-    //         "4.0",
-    //         "2.2"
-    //     ],
-    //     [
-    //         "2.0",
-    //         "SWITCHPOINT6"
-    //     ],
-    //     [
-    //         "2.1",
-    //         "1.0"
-    //     ],
-    //     [
-    //         "1.2",
-    //         "2.0"
-    //     ],
-    //     [
-    //         "SWITCHPOINT5",
-    //         "1.0"
-    //     ],
-    //     [
-    //         "1.1",
-    //         "3.0"
-    //     ]
-    // ];
-    const selectedPracConfig = getFlipFlopConfig(flipFlopState.selectedPractical);
-    if (selectedPracConfig?.value === 'SR') {
-      return ValidateSRConnection();
+    const selectedPracConfig = getFlipFlopConfig(TheveninState.selectedPractical);
+    if (selectedPracConfig?.value === 'VOLTAGE') {
+      return ValidateVoltageConnection();
     }
-    if (selectedPracConfig?.value === 'CLOCKED') {
-      return ValidateClockedConnection();
+    if (selectedPracConfig?.value === 'VTH') {
+      return ValidateVthConnection();
     }
-    if (selectedPracConfig?.value === 'D') {
-      return ValidateDConnection();
+    if (selectedPracConfig?.value === 'RTH') {
+      return ValidateRthConnection();
     }
+    return false;
   }
 
   const onRun = () => {
-    console.log("Runing");
     const isValid = ValidateConnection();
     if (isValid) {
       runResult();
-      // Update to Firebase
       console.log("Correct Connection");
     } else {
       showWrongConnectionToast();
@@ -327,32 +264,31 @@ const EXORGateFloatingMenu = () => {
 
   const runResult = () => {
 
-    const switch1 = flipFlopState.switch.SWITCH1;
-    const switch2 = flipFlopState.switch.SWITCH2;
-    const switch3 = flipFlopState.switch.SWITCH4;
+    const gateConfig = getFlipFlopConfig(TheveninState.selectedPractical);
 
-    updateDoc(ff, {
-      'ip1': switch1,
-      'ip2': switch2,
-      'ip3': switch3,
+    updateDoc(thevenin, {
+      'circuit': gateConfig?.KIT_ID,
+      // 'occupied':true,
+      /* TODO : FETCH USER ID */
     });
+    showCustomWarningToast("Need to fetch userid and send to firebase");
   }
 
   const getFlipFlopConfig = (selectedPractical: string) => {
-    return flipFlopPracticalOptions.find((gate) => gate.value === selectedPractical);
+    return TheveninPracticalOptions.find((gate) => gate.value === selectedPractical);
   }
 
   const onSubmit = async () => {
 
-    console.log({ flipFlopState, tableData, selectedPracConfig: getFlipFlopConfig(flipFlopState.selectedPractical) });
+    console.log({ TheveninState, tableData, selectedPracConfig: getFlipFlopConfig(TheveninState.selectedPractical) });
 
-    console.log(flipFlopState.allLines.map((line) => line.getIndexes()));
+    console.log(TheveninState.allLines.map((line) => line.getIndexes()));
 
     return;
     try {
       const payload = {
         userId: USERID,
-        practicalId: getFlipFlopConfig(flipFlopState.selectedPractical)?.id,
+        practicalId: getFlipFlopConfig(TheveninState.selectedPractical)?.id,
         value: JSON.stringify(tableData)
       };
       const resposne = await ApiNetworkService.submitPractical(payload);
@@ -375,89 +311,18 @@ const EXORGateFloatingMenu = () => {
     }
   };
 
-
-
-  const columns = [
-    {
-      title: 'Input 1',
-      dataIndex: 'ip1',
-      key: 'ip1',
-      width: COL_WIDTH,
-    },
-    {
-      title: 'Input 2',
-      dataIndex: 'ip2',
-      key: 'ip2',
-      width: COL_WIDTH,
-    },
-    {
-      title: 'Q',
-      dataIndex: 'Q',
-      key: 'Q',
-      width: COL_WIDTH,
-      render: (text: string, record: FlipFlopResultTable) => {
-        return <Input
-          type='number'
-          max={1}
-          min={0}
-          name="Q"
-          onChange={(e) => handleTable(e, record)} />
-      },
-    },
-    {
-      title: '_Q',
-      dataIndex: '_Q',
-      key: '_Q',
-      width: COL_WIDTH,
-      render: (text: string, record: FlipFlopResultTable) => {
-        return <Input
-          type='number'
-          max={1}
-          min={0}
-          name="_Q"
-          onChange={(e) => handleTable(e, record)}
-        />
-      },
-    },
-  ];
-
-  const handleTable = (e: any, record: FlipFlopResultTable) => {
-    let found = false;
-    const targetName = e.target.name;
-    const targetValue = parseInt(e.target.value) | 0;
-
-    let newData = tableData.map((item) => {
-      if (item.key === record.key) {
-        found = true;
-        return { ...item, [targetName]: targetValue };
-      }
-      return item;
-    });
-
-    if (!found) {
-      newData = [...newData, { ...record, [targetName]: targetValue }];
-    }
-
-    setTableData(newData);
-
-    /** Datasource */
-    const newDataSource = dataSource.map((item) => {
-      if (item.key === record.key) {
-        found = true;
-        return { ...item, [targetName]: targetValue };
-      }
-      return item;
-    });
-    setDataSource(newDataSource);
-  };
-
   const onClearTable = () => {
-    setDataSource(asd);
-    setTableData(() => { return [] });
+    alert("working");
+    resultData.resetFields();
   }
 
   const onClearCircuit = () => {
     dispatch(resetLines());
+  }
+
+  const onFormChange = (values: FieldType) => {
+    if (!resultData.getFieldValue('isChanged')) resultData.setFieldValue('isChanged', true);
+    console.log("he", values);
   }
 
   return (
@@ -497,20 +362,62 @@ const EXORGateFloatingMenu = () => {
           </Space>
         }
       >
-        <Form layout="vertical" hideRequiredMark>
+        <Form
+          //layout="vertical"
+          form={resultData}
+          labelCol={{ span: 5 }}
+          wrapperCol={{ span: 14 }}
+          name="theveninResult"
+          onFinish={onFinish}
+          onValuesChange={onFormChange}
+          initialValues={{ isChanged: false }}
+          autoComplete="off"
+        >
           <Row gutter={[16, 16]}>
             <Col span={24}>
-              <Typography.Title level={5}>Practical Type</Typography.Title>
-              <Radio.Group defaultValue={flipFlopState.selectedPractical || flipFlopPracticalOptions[0].value} options={flipFlopPracticalOptions} onChange={onChangeFlipFlopPractical} value={flipFlopState.selectedPractical} optionType="button" />
+              <Title level={5}>Practical Type</Title>
+              <Radio.Group defaultValue={TheveninState.selectedPractical || TheveninPracticalOptions[0].value} options={TheveninPracticalOptions} onChange={onChangeTheveninPractical} value={TheveninState.selectedPractical} optionType="button" />
             </Col>
             <Col span={24}>
-              <Table dataSource={dataSource} columns={columns} size="small" pagination={false} />
+              <Title level={5}>Result</Title>
             </Col>
+            <Col span={12}>
+
+              <Form.Item<FieldType>
+                label="Voltage"
+                name="voltage"
+                rules={[{ required: true }]}
+              >
+                <Input />
+              </Form.Item>
+              <Form.Item<FieldType>
+                label="VTH"
+                name="vth"
+                rules={[{ required: true }]}
+              >
+                <Input />
+              </Form.Item>
+              <Form.Item<FieldType>
+                label="RTH"
+                name="rth"
+
+                rules={[{ required: true }]}
+              >
+                <Input />
+              </Form.Item>
+              <Form.Item wrapperCol={{ offset: 8, span: 16 }}
+              >
+                <Button type="primary" htmlType="submit">
+                  Submit
+                </Button>
+              </Form.Item>
+            </Col>
+
           </Row>
         </Form>
-      </Drawer>
+      </Drawer >
     </>
   )
 }
 
-export default EXORGateFloatingMenu
+export default TheveninGateFloatingMenu

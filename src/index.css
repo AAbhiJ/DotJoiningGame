@@ -89,8 +89,8 @@ button:focus-visible {
 .floatingMenu{
   position : absolute;
   z-index: 999;
-  top:1rem;
-  left:1rem;
+  bottom:1rem;
+  right:1rem;
   background-color: #f2f2f2;
   padding: 0.50rem;
   border-radius: 10px;

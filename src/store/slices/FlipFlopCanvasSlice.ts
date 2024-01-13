@@ -19,15 +19,18 @@ export class FlipFlopSwitches{
 }
 
 const DEFAULT_SWITCHES : FlipFlopSwitches = {
-  SWITCH1 : false,
-  SWITCH2 : false,
-  SWITCH3 : false,
-  SWITCH4 : false,
-  SWITCH5 : false,
-  SWITCH6 : false,
+  SWITCH1 : true,
+  SWITCH2 : true,
+  SWITCH3 : true,
+  SWITCH4 : true,
+  SWITCH5 : true,
+  SWITCH6 : true,
 }
 
-export type SwitchKey = keyof FlipFlopSwitches;
+export type SwitchKey = {
+  switch : keyof FlipFlopSwitches,
+  value : boolean
+};
 
 interface Props {
   selectedDot: SelectedDot;
@@ -61,15 +64,22 @@ const FlipFlopCanvasSlice = createSlice({
       const filtered = state.allLines.filter((_, index) => index !== payload);
       state.allLines = filtered;
     },
+    setSwitch(state, { payload }: PayloadAction<SwitchKey>) {
+      console.log(payload);
+      state.switch[payload.switch] = payload.value;
+    },
     toggleSwitch(state, { payload }: PayloadAction<SwitchKey>) {
-      state.switch[payload] = !state.switch[payload];
+      state.switch[payload.switch] = !state.switch[payload.switch];
+    },
+    resetLines(state) {
+      state.allLines = [];
     },
   },
 });
 
 export default FlipFlopCanvasSlice.reducer;
 
-export const { selectDot, addLine, removeLine, selectPractical, toggleSwitch } =
+export const { selectDot, addLine, removeLine, selectPractical, toggleSwitch, resetLines, setSwitch} =
   FlipFlopCanvasSlice.actions;
 
 export const FlipFlopCanvasStore = (state: RootState) => state.flipFlopCanvas;
