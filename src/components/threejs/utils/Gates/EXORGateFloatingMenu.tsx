@@ -21,39 +21,100 @@ import {
 interface FlipFlopResultTable {
   key: string;
   ip1: number;
-  ip2: number;
-  Q: number | null;
-  _Q: number | null;
+  ip2?: number;
+  ip3?: number;
+  Q?: number | undefined;
+  _Q?: number | undefined;
 }
 
-const asd: FlipFlopResultTable[] = [
+const clockedFlipFlopTableDefaultData: FlipFlopResultTable[] = [
   {
     key: '1',
     ip1: 0,
     ip2: 0,
-    Q: null,
-    _Q: null
+    ip3: 0,
+    Q: undefined,
+    _Q: undefined
   },
   {
     key: '2',
     ip1: 0,
     ip2: 1,
-    Q: null,
-    _Q: null
+    ip3: 0,
+    Q: undefined,
+    _Q: undefined
   },
   {
     key: '3',
     ip1: 1,
     ip2: 0,
-    Q: null,
-    _Q: null
+    ip3: 0,
+    Q: undefined,
+    _Q: undefined
   },
   {
     key: '4',
     ip1: 1,
     ip2: 1,
-    Q: null,
-    _Q: null
+    ip3: 0,
+    Q: undefined,
+    _Q: undefined
+  },
+];
+const srFlipFlopTableDefaultData: FlipFlopResultTable[] = [
+  {
+    key: '1',
+    ip1: 0,
+    ip2: 0,
+    Q: undefined,
+    _Q: undefined
+  },
+  {
+    key: '2',
+    ip1: 0,
+    ip2: 1,
+    Q: undefined,
+    _Q: undefined
+  },
+  {
+    key: '3',
+    ip1: 1,
+    ip2: 0,
+    Q: undefined,
+    _Q: undefined
+  },
+  {
+    key: '4',
+    ip1: 1,
+    ip2: 1,
+    Q: undefined,
+    _Q: undefined
+  },
+];
+const dFlipFlopTableDefaultData: FlipFlopResultTable[] = [
+  {
+    key: '1',
+    ip1: 0,
+    Q: undefined,
+    _Q: undefined
+  },
+  {
+    key: '2',
+    ip1: 0,
+    Q: undefined,
+    _Q: undefined
+  },
+  {
+    key: '3',
+    ip1: 1,
+    Q: undefined,
+    _Q: undefined
+  },
+  {
+    key: '4',
+    ip1: 1,
+    Q: undefined,
+    _Q: undefined
   },
 ];
 
@@ -70,10 +131,24 @@ const EXORGateFloatingMenu = () => {
 
   const flipFlopPracticalOptions = GATES_CONFIG;
 
-  const COL_WIDTH: string = "25%";
+
+  const getTableDefaultData = (selectedPractical: string) => {
+    let data: any[] = []
+    if (selectedPractical === 'SR') {
+      data = srFlipFlopTableDefaultData;
+    }
+    else if (selectedPractical === 'CLOCKED') {
+      data = clockedFlipFlopTableDefaultData;
+    }
+    else if (selectedPractical === 'D') {
+      data = dFlipFlopTableDefaultData;
+    }
+    return data
+  }
 
   const [open, setOpen] = useState(false);
-  const [dataSource, setDataSource] = useState(asd);
+  const [tableDataSource, setTableDataSource] = useState(getTableDefaultData("SR"));
+  const [dataSource, setDataSource] = useState(tableDataSource);
   const [tableData, setTableData] = useState<FlipFlopResultTable[]>([]);
 
   let unsubscribe: any = null;
@@ -131,9 +206,16 @@ const EXORGateFloatingMenu = () => {
       showResetInputToast();
       return false;
     }
+    setTableDataSource(getTableDefaultData(value));
     dispatch(selectPractical(value));
     return true;
   };
+
+  useEffect(() => {
+    if (tableDataSource) {
+      setDataSource(tableDataSource);
+    }
+  }, [tableDataSource])
 
   /** Notification Connection Toast */
   const showWrongConnectionToast = () => {
@@ -175,7 +257,6 @@ const EXORGateFloatingMenu = () => {
       }
       return true;
     })
-
     if (NotConnected.length !== 0) {
       return false;
     }
@@ -348,7 +429,23 @@ const EXORGateFloatingMenu = () => {
 
     console.log(flipFlopState.allLines.map((line) => line.getIndexes()));
 
+    const practData = []
+
+    practData.push({
+      practicalId: getFlipFlopConfig(flipFlopState.selectedPractical)?.id,
+      value: tableData
+    })
+
+    const payload = {
+      userId: USERID,
+      practical_data: practData
+    }
+
+    console.log(payload);
+
+
     return;
+    
     try {
       const payload = {
         userId: USERID,
@@ -375,32 +472,51 @@ const EXORGateFloatingMenu = () => {
     }
   };
 
+  const getColumnWidth = () => {
+    if (flipFlopState.selectedPractical === 'SR') {
+      return "25%";
+    }
+    else if(flipFlopState.selectedPractical === 'CLOCKED') {
+      return "20%";
+    }
+    else if(flipFlopState.selectedPractical === 'D') {
+      return "33%";
+    }
+  }
 
 
-  const columns = [
+
+  const clockedFlipFlopColumns = [
     {
       title: 'Input 1',
       dataIndex: 'ip1',
       key: 'ip1',
-      width: COL_WIDTH,
+      width: getColumnWidth(),
     },
     {
       title: 'Input 2',
       dataIndex: 'ip2',
       key: 'ip2',
-      width: COL_WIDTH,
+      width: getColumnWidth(),
+    },
+    {
+      title: 'Input 3',
+      dataIndex: 'ip3',
+      key: 'ip3',
+      width: getColumnWidth(),
     },
     {
       title: 'Q',
       dataIndex: 'Q',
       key: 'Q',
-      width: COL_WIDTH,
+      width: getColumnWidth(),
       render: (text: string, record: FlipFlopResultTable) => {
         return <Input
           type='number'
           max={1}
           min={0}
           name="Q"
+          value={record.Q}
           onChange={(e) => handleTable(e, record)} />
       },
     },
@@ -408,13 +524,98 @@ const EXORGateFloatingMenu = () => {
       title: '_Q',
       dataIndex: '_Q',
       key: '_Q',
-      width: COL_WIDTH,
+      width: getColumnWidth(),
       render: (text: string, record: FlipFlopResultTable) => {
         return <Input
           type='number'
           max={1}
           min={0}
           name="_Q"
+          value={record._Q}
+          onChange={(e) => handleTable(e, record)}
+        />
+      },
+    },
+  ];
+  const srFlipFlopColumns = [
+    {
+      title: 'Input 1',
+      dataIndex: 'ip1',
+      key: 'ip1',
+      width: getColumnWidth(),
+    },
+    {
+      title: 'Input 2',
+      dataIndex: 'ip2',
+      key: 'ip2',
+      width: getColumnWidth(),
+    },
+    {
+      title: 'Q',
+      dataIndex: 'Q',
+      key: 'Q',
+      width: getColumnWidth(),
+      render: (text: string, record: FlipFlopResultTable) => {
+        return <Input
+          type='number'
+          max={1}
+          min={0}
+          name="Q"
+          value={record.Q}
+          onChange={(e) => handleTable(e, record)} />
+      },
+    },
+    {
+      title: '_Q',
+      dataIndex: '_Q',
+      key: '_Q',
+      width: getColumnWidth(),
+      render: (text: string, record: FlipFlopResultTable) => {
+        return <Input
+          type='number'
+          max={1}
+          min={0}
+          name="_Q"
+          value={record._Q}
+          onChange={(e) => handleTable(e, record)}
+        />
+      },
+    },
+  ];
+  const dFlipFlopColumns = [
+    {
+      title: 'Input 1',
+      dataIndex: 'ip1',
+      key: 'ip1',
+      width: getColumnWidth(),
+    },
+    {
+      title: 'Q',
+      dataIndex: 'Q',
+      key: 'Q',
+      width: getColumnWidth(),
+      render: (text: string, record: FlipFlopResultTable) => {
+        return <Input
+          type='number'
+          max={1}
+          min={0}
+          name="Q"
+          value={record.Q}
+          onChange={(e) => handleTable(e, record)} />
+      },
+    },
+    {
+      title: '_Q',
+      dataIndex: '_Q',
+      key: '_Q',
+      width: getColumnWidth(),
+      render: (text: string, record: FlipFlopResultTable) => {
+        return <Input
+          type='number'
+          max={1}
+          min={0}
+          name="_Q"
+          value={record._Q}
           onChange={(e) => handleTable(e, record)}
         />
       },
@@ -448,16 +649,28 @@ const EXORGateFloatingMenu = () => {
       }
       return item;
     });
-    setDataSource(newDataSource);
+    setTableDataSource(newDataSource);
   };
 
   const onClearTable = () => {
-    setDataSource(asd);
+    setTableDataSource(getTableDefaultData(flipFlopState.selectedPractical));
     setTableData(() => { return [] });
   }
 
   const onClearCircuit = () => {
     dispatch(resetLines());
+  }
+
+  const getFlipFlopColumns = (selectedPractical: string) => {
+    if (selectedPractical === 'SR') {
+      return srFlipFlopColumns;
+    }
+    else if (selectedPractical === 'CLOCKED') {
+      return clockedFlipFlopColumns;
+    }
+    else if (selectedPractical === 'D') {
+      return dFlipFlopColumns;
+    }
   }
 
   return (
@@ -504,9 +717,9 @@ const EXORGateFloatingMenu = () => {
               <Radio.Group defaultValue={flipFlopState.selectedPractical || flipFlopPracticalOptions[0].value} options={flipFlopPracticalOptions} onChange={onChangeFlipFlopPractical} value={flipFlopState.selectedPractical} optionType="button" />
             </Col>
             <Col span={24}>
-              <Table dataSource={dataSource} columns={columns} size="small" pagination={false} />
+              <Table dataSource={dataSource} columns={getFlipFlopColumns(flipFlopState.selectedPractical)} size="small" pagination={false} />
             </Col>
-          </Row>
+          </Row>  
         </Form>
       </Drawer>
     </>
