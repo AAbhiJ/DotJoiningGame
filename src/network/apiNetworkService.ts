@@ -9,4 +9,7 @@ export class ApiNetworkService {
   static submitPractical(payload : any) {
     return http.post(`/${Endpoints.SUBMIT_PRACTICAL}`, payload);
   }
+  static getPracticalData(payload: any){
+    return http.get(`/${Endpoints.GET_PRACTICAL_DATA}`, payload);
+  }
 }

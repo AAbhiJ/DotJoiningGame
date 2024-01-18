@@ -16,6 +16,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
 } from 'firebase/auth'
+import moment from 'moment';
 
 
 interface FlipFlopResultTable {
@@ -150,6 +151,7 @@ const EXORGateFloatingMenu = () => {
   const [tableDataSource, setTableDataSource] = useState(getTableDefaultData("SR"));
   const [dataSource, setDataSource] = useState(tableDataSource);
   const [tableData, setTableData] = useState<FlipFlopResultTable[]>([]);
+  const [selectedPracticalItem, setSelectedPracticalItem] = useState(flipFlopState.selectedPractical);
 
   let unsubscribe: any = null;
 
@@ -208,6 +210,7 @@ const EXORGateFloatingMenu = () => {
     }
     setTableDataSource(getTableDefaultData(value));
     dispatch(selectPractical(value));
+    setSelectedPracticalItem(value);
     return true;
   };
 
@@ -216,6 +219,58 @@ const EXORGateFloatingMenu = () => {
       setDataSource(tableDataSource);
     }
   }, [tableDataSource])
+
+  useEffect(() => {
+    if(open) {
+      getStudentPracticalData(selectedPracticalItem)
+    }
+  }, [open, selectedPracticalItem])
+
+  const getStudentPracticalData = (selected_practical: string) => {
+    // const payload = {
+    //   params: {
+    //     userId: 3,
+    //     practicalId: 1,
+    //     submittedDate: "2024-01-13"
+    //   }
+    // };
+    // console.log("monnet", moment().format("YYYY-MM-DD"))
+    const payload = {
+      params: {
+        userId: USERID,
+        practicalId: getFlipFlopConfig(selected_practical)?.id,
+        submittedDate: moment().format("YYYY-MM-DD")
+      }
+    }
+    ApiNetworkService.getPracticalData(payload).then((response) => {
+      console.log(response);
+      if (response.status === 200) {
+        // const parsedData = JSON.parse(data);
+        const data = response?.data;
+        // console.log('parsedData', data)
+        const practicalData = data?.data[0]?.submittedvalue;
+        // console.log(practicalData);
+        const tableData = getTableDefaultData(selected_practical);
+        let index = 0
+        for (const key in practicalData) {
+          // console.log(key)
+          tableData[index] = practicalData[key]
+          tableData[index].key = `${(index + 1)}`
+          index++
+        }
+        // console.log(tableData);
+        // setTableData(parsedData);
+        setTableDataSource(tableData);
+      }
+    }).catch((error) => {
+      const message = error?.response.data.message;
+      const config = {
+        message: "Error Fetching!",
+        description: message || "Some error occurred during practical fetching!"
+      }
+      notification.warning(config);
+    }) 
+  }
 
   /** Notification Connection Toast */
   const showWrongConnectionToast = () => {
