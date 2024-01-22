@@ -136,13 +136,13 @@ const EXORGateFloatingMenu = () => {
   const getTableDefaultData = (selectedPractical: string) => {
     let data: any[] = []
     if (selectedPractical === 'SR') {
-      data = srFlipFlopTableDefaultData;
+      data = [...srFlipFlopTableDefaultData];
     }
     else if (selectedPractical === 'CLOCKED') {
-      data = clockedFlipFlopTableDefaultData;
+      data = [...clockedFlipFlopTableDefaultData];
     }
     else if (selectedPractical === 'D') {
-      data = dFlipFlopTableDefaultData;
+      data = [...dFlipFlopTableDefaultData];
     }
     return data
   }
@@ -152,6 +152,7 @@ const EXORGateFloatingMenu = () => {
   const [dataSource, setDataSource] = useState(tableDataSource);
   const [tableData, setTableData] = useState<FlipFlopResultTable[]>([]);
   const [selectedPracticalItem, setSelectedPracticalItem] = useState(flipFlopState.selectedPractical);
+  const [isInputChanged, setIsInputChanged] = useState<boolean>(false)
 
   let unsubscribe: any = null;
 
@@ -251,14 +252,25 @@ const EXORGateFloatingMenu = () => {
         const practicalData = data?.data[0]?.submittedvalue;
         // console.log(practicalData);
         const tableData = getTableDefaultData(selected_practical);
-        let index = 0
         for (const key in practicalData) {
-          // console.log(key)
-          tableData[index] = practicalData[key]
-          tableData[index].key = `${(index + 1)}`
-          index++
+          console.log('key', practicalData[key].key)
+          let index = 0
+          for (const key1 in tableData) {
+            console.log('key1', tableData[index].key)
+            if (practicalData[key].key === tableData[index].key) {
+              console.log('l1', practicalData[key], tableData[index]);
+              
+              tableData[index] = practicalData[key]
+            }
+            index++
+          }
+          // if (`${key}` === practicalData[index].key){ 
+          //   tableData[index] = practicalData[key]
+          // }
+          // tableData[index] = practicalData[key]
+          // tableData[index].key = key
         }
-        // console.log(tableData);
+        console.log(tableData);
         // setTableData(parsedData);
         setTableDataSource(tableData);
       }
@@ -480,52 +492,67 @@ const EXORGateFloatingMenu = () => {
 
   const onSubmit = async () => {
 
-    console.log({ flipFlopState, tableData, selectedPracConfig: getFlipFlopConfig(flipFlopState.selectedPractical) });
-
-    console.log(flipFlopState.allLines.map((line) => line.getIndexes()));
-
-    const practData = []
-
-    practData.push({
-      practicalId: getFlipFlopConfig(flipFlopState.selectedPractical)?.id,
-      value: tableData
-    })
-
-    const payload = {
-      userId: USERID,
-      practical_data: practData
-    }
-
-    console.log(payload);
-
-
-    return;
+    // return;
     
     try {
+
+      console.log({ flipFlopState, tableData, selectedPracConfig: getFlipFlopConfig(flipFlopState.selectedPractical) });
+
+      console.log(flipFlopState.allLines.map((line) => line.getIndexes()));
+  
+      const practData = []
+  
+      practData.push({
+        practicalId: getFlipFlopConfig(flipFlopState.selectedPractical)?.id,
+        value: tableData
+      })
+  
       const payload = {
         userId: USERID,
-        practicalId: getFlipFlopConfig(flipFlopState.selectedPractical)?.id,
-        value: JSON.stringify(tableData)
-      };
-      const resposne = await ApiNetworkService.submitPractical(payload);
-      console.log(resposne);
-      if (resposne.status === 201) {
-        const config = {
-          message: "Practical Submitted",
+        practical_data: practData
+      }
+  
+      console.log(payload);  
+
+      // const payload = {
+      //   userId: USERID,
+      //   practicalId: getFlipFlopConfig(flipFlopState.selectedPractical)?.id,
+      //   value: JSON.stringify(tableData)
+      // };
+      // const resposne = await 
+      ApiNetworkService.submitPractical(payload)
+      .then((response) => {
+
+        console.log(response);
+        if (response.status === 200) {
+          const config = {
+            message: "Practical Submitted",
+          }
+          notification.success(config);
+          getStudentPracticalData(selectedPracticalItem)
+          setIsInputChanged(false)
+        } else {
+          throw "Error";
         }
-        notification.success(config);
-      } else {
-        throw "Error";
-      }
-    } catch (error) {
-      const message = error?.response.data.message;
-      const config = {
-        message: "Error Submitting!",
-        description: message || "Some error occurred during practical submitting!"
-      }
-      notification.warning(config);
+      }).catch ((err) => {
+        console.log(err);
+        const message = err?.response.data.message;
+        const config = {
+          message: "Error Submitting!",
+          description: message || "Some error occurred during practical submitting!"
+        }
+        notification.warning(config);
+      })
+  }
+  catch (error) {
+    console.log(error);
+    const config = {
+      message: "Error Submitting!",
+      description: "Some error occurred during practical submitting!"
     }
-  };
+    notification.warning(config);
+  }
+}
 
   const getColumnWidth = () => {
     if (flipFlopState.selectedPractical === 'SR') {
@@ -695,7 +722,7 @@ const EXORGateFloatingMenu = () => {
     }
 
     setTableData(newData);
-
+    setIsInputChanged(true)
     /** Datasource */
     const newDataSource = dataSource.map((item) => {
       if (item.key === record.key) {
@@ -708,10 +735,12 @@ const EXORGateFloatingMenu = () => {
   };
 
   const onClearTable = () => {
+    console.log("1234567", getTableDefaultData(flipFlopState.selectedPractical));
     setTableDataSource(getTableDefaultData(flipFlopState.selectedPractical));
-    setTableData(() => { return [] });
+    setIsInputChanged(false)
+    // setTableData(() => { return [] });
   }
-
+  
   const onClearCircuit = () => {
     dispatch(resetLines());
   }
@@ -727,9 +756,10 @@ const EXORGateFloatingMenu = () => {
       return dFlipFlopColumns;
     }
   }
-
+  
   return (
     <>
+    {console.log("dataSource", dataSource)}
       <Row gutter={8}>
         <Col>
           <Button type="primary" onClick={showDrawer}>
@@ -764,7 +794,7 @@ const EXORGateFloatingMenu = () => {
             </Button>
           </Space>
         }
-      >
+        >
         <Form layout="vertical" hideRequiredMark>
           <Row gutter={[16, 16]}>
             <Col span={24}>
